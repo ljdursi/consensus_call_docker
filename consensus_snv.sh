@@ -10,6 +10,7 @@ function usage {
     exit 1
 }
 
+readonly EXECUTABLE_PATH=${USE_EXECUTABLE_PATH:-"/usr/local/bin"}
 outfile=consensus.snv.vcf
 
 while getopts "b:d:m:s:o:c:n:h" OPTION 
@@ -79,8 +80,8 @@ done
 ##
 ## Merge SNV calls
 ##
-readonly INTERMEDIATE=merged.snv.vcf
-./consensus_call_docker/merge-one-tumour-snv.sh \
+readonly INTERMEDIATE=/tmp/merged.snv.vcf
+"${EXECUTABLE_PATH}"/merge-one-tumour-snv.sh \
     -b "${broadfile}" -d "${dkfzfile}" -m "${musefile}" -s "${sangerfile}" -o "$INTERMEDIATE"
 
 ##
@@ -97,8 +98,8 @@ then
     dbsnp_args+=("${cosmic_non_coding}")
 fi
 
-./consensus_call_docker/dbsnp_annotate_one.sh  "${dsnp_args[@]}"
+"${EXECUTABLE_PATH}"/dbsnp_annotate_one.sh  "${dbsnp_args[@]}"
 
-#rm -f ${INTERMEDIATE}
-#rm -f ${INTERMEDIATE}.gz
-#rm -f ${INTERMEDIATE}.gz.tbi
+rm -f ${INTERMEDIATE}
+rm -f ${INTERMEDIATE}.gz
+rm -f ${INTERMEDIATE}.gz.tbi

@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ## merges SNV files together
 ## requires mergevcf, bgzip, tabix
 

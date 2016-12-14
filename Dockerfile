@@ -116,3 +116,6 @@ RUN cd /tmp \
 COPY clean_snv_calls.py /usr/local/bin
 COPY dbsnp_annotate_one.sh /usr/local/bin
 COPY merge-one-tumour-snv.sh /usr/local/bin
+COPY consensus_snv.sh /usr/local/bin
+
+ENTRYPOINT ["/usr/local/bin/consensus_snv.sh"]

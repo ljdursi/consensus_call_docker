@@ -1,7 +1,7 @@
 #!/bin/bash 
 
-readonly BASE_PATH="/Users/jonathan dursi/Desktop/cell-lines"
-readonly DB_PATH="${BASE_PATH}/annotation_databases"
+readonly DB_PATH=${USE_DB_PATH:-"/dbs/annotation_databases"}
+readonly EXECUTABLE_PATH=${USE_EXECUTABLE_PATH:-"/usr/local/bin"}
 
 function usage {
     >&2 echo "usage: $0 input.vcf.gz snv|indel output_file [/path/to/cosmic_coding] [/path/to/cosmic_noncoding]"
@@ -102,7 +102,7 @@ done
 
 vcfanno $DBSNP_ANNOTATIONS "${input_file}" \
     | fix_vcfanno_header \
-    | "${BASE_PATH}/consensus_call_docker/clean_${variant_type}_calls.py" -o "${output_file}"
+    | "${EXECUTABLE_PATH}/clean_${variant_type}_calls.py" -o "${output_file}"
 
 bgzip "${output_file}"
 tabix -p vcf "${output_file}.gz"

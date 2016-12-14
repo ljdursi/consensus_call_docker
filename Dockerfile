@@ -118,4 +118,37 @@ COPY dbsnp_annotate_one.sh /usr/local/bin
 COPY merge-one-tumour-snv.sh /usr/local/bin
 COPY consensus_snv.sh /usr/local/bin
 
+# install vt (for normalizing 1kgenomes data)
+RUN cd /tmp \
+    && wget -nv https://github.com/atks/vt/archive/0.5772.tar.gz \
+    && tar -xzf 0.5772.tar.gz \
+    && rm 0.5772.tar.gz \
+    && cd vt-0.5772 \
+    && make \
+    && mv vt /usr/local/bin \
+    && cd .. \
+    && rm -rf vt-0.5772
+
+# copy annotation-database-copying scripts
+
+ENV DBDIR /dbs/annotation_databases/data
+RUN mkdir -p $DBDIR
+
+ENV DBSNP $DBDIR/All_20160601.vcf
+ENV RMSK $DBDIR/hg19.rmsk.bed
+
+RUN axel -q -n 4 ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz -o $DBSNP.gz \
+    && gunzip $DBSNP.gz \
+    && bgzip $DBSNP \
+    && tabix -p vcf $DBSNP.gz
+
+RUN axel -q -n 4 http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -o $RMSK.gz \
+    && gunzip $RMSK.gz \
+    && bgzip $RMSK \
+    && tabix -p bed $RMSK.gz 
+
+COPY normalize_1kg.sh /dbs/annotation_databases/
+
+RUN /dbs/annotation_databases/normalize_1kg.sh
+
 ENTRYPOINT ["/usr/local/bin/consensus_snv.sh"]

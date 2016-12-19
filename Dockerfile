@@ -137,18 +137,29 @@ RUN mkdir -p $DBDIR
 ENV DBSNP $DBDIR/All_20160601.vcf
 ENV RMSK $DBDIR/hg19.rmsk.bed
 
-RUN axel -q -n 4 ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz -o $DBSNP.gz \
-    && gunzip $DBSNP.gz \
+RUN wget -nv ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz -O $DBSNP.gz 
+
+RUN gunzip $DBSNP.gz \
     && bgzip $DBSNP \
     && tabix -p vcf $DBSNP.gz
 
-RUN axel -q -n 4 http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -o $RMSK.gz \
-    && gunzip $RMSK.gz \
+RUN axel -q -n 4 http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -o $RMSK.gz 
+RUN gunzip $RMSK.gz \
     && bgzip $RMSK \
     && tabix -p bed $RMSK.gz 
 
-COPY normalize_1kg.sh /dbs/annotation_databases/
+ENV VCF $DBDIR/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz
+ENV REF /reference/genome.fa.gz
 
-RUN /dbs/annotation_databases/normalize_1kg.sh
+RUN wget -nv ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz -O $VCF
+
+ENV NEWVCF $DBDIR/1000genomes.phase3.decomposed.normalized.vcf.gz
+RUN /usr/local/bin/vt decompose -s "$VCF" \
+    | /usr/local/bin/vt normalize -r "${REF}" - \
+    | grep -v "##INFO=<ID=MEINFO" \
+    | sed -e 's/MEINFO=[^;]*//' \
+    | bgzip -f > $NEWVCF
+
+RUN tabix -p vcf $NEWVCF
 
 ENTRYPOINT ["/usr/local/bin/consensus_snv.sh"]

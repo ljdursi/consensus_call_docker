@@ -10,15 +10,16 @@ RUN apt-get update && \
     apt-get install -y \
         automake \
         autotools-dev \
-        axel \
         build-essential \
         cmake \
         git \
+        libcurl4-openssl-dev \
         libhts-dev \
         libhts0 \
         libjemalloc-dev \
         libncurses5-dev \
         libsparsehash-dev \
+        libxml2-dev \
         libz-dev \
         python \
         python-dev \
@@ -76,7 +77,7 @@ RUN mkdir -p /deps && \
 # get pancan standard reference
 RUN mkdir -p /reference && \
     cd /reference && \
-    axel -n 4 -q ftp://ftp.sanger.ac.uk/pub/project/PanCancer/genome.fa.gz && \
+    wget -nv ftp://ftp.sanger.ac.uk/pub/project/PanCancer/genome.fa.gz && \
     gunzip genome.fa.gz ; \
     bgzip genome.fa && \
     samtools faidx genome.fa.gz
@@ -86,6 +87,7 @@ RUN mkdir -p /src && \
     cd /src && \
     wget -nv https://github.com/jts/sga/archive/v0.10.14.tar.gz && \
     tar -xzvf v0.10.14.tar.gz && \
+    rm v0.10.14.tar.gz && \
     cd sga-0.10.14/src && \
     ./autogen.sh && \
     ./configure --with-bamtools=/deps/bamtools-2.4.0 --with-jemalloc=/usr --prefix=/usr/local && \
@@ -118,7 +120,7 @@ COPY dbsnp_annotate_one.sh /usr/local/bin
 COPY merge-one-tumour-snv.sh /usr/local/bin
 COPY consensus_snv.sh /usr/local/bin
 
-# install vt (for normalizing 1kgenomes data)
+# install vt (for normalizing VCFs )
 RUN cd /tmp \
     && wget -nv https://github.com/atks/vt/archive/0.5772.tar.gz \
     && tar -xzf 0.5772.tar.gz \
@@ -137,29 +139,41 @@ RUN mkdir -p $DBDIR
 ENV DBSNP $DBDIR/All_20160601.vcf
 ENV RMSK $DBDIR/hg19.rmsk.bed
 
-RUN wget -nv ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz -O $DBSNP.gz 
-
-RUN gunzip $DBSNP.gz \
+RUN wget -nv ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz -O $DBSNP.gz \
+    && gunzip $DBSNP.gz \
     && bgzip $DBSNP \
     && tabix -p vcf $DBSNP.gz
 
-RUN axel -q -n 4 http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -o $RMSK.gz 
-RUN gunzip $RMSK.gz \
+RUN wget http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -o $RMSK.gz \
+    && gunzip $RMSK.gz \
     && bgzip $RMSK \
     && tabix -p bed $RMSK.gz 
 
 ENV VCF $DBDIR/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz
+ENV NEWVCF $DBDIR/1000genomes.phase3.decomposed.normalized.vcf.gz
 ENV REF /reference/genome.fa.gz
 
-RUN wget -nv ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz -O $VCF
+RUN wget -nv ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz -O $VCF \
+    && /usr/local/bin/vt decompose -s "$VCF" \
+        | /usr/local/bin/vt normalize -r "${REF}" - \
+        | grep -v "##INFO=<ID=MEINFO" \
+        | sed -e 's/MEINFO=[^;]*//' \
+        | bgzip -f > $NEWVCF \
+    && tabix -p vcf $NEWVCF \
+    && rm -f $VCF
 
-ENV NEWVCF $DBDIR/1000genomes.phase3.decomposed.normalized.vcf.gz
-RUN /usr/local/bin/vt decompose -s "$VCF" \
-    | /usr/local/bin/vt normalize -r "${REF}" - \
-    | grep -v "##INFO=<ID=MEINFO" \
-    | sed -e 's/MEINFO=[^;]*//' \
-    | bgzip -f > $NEWVCF
+###
+### R and various packages are needed for the model filtering
+###
 
-RUN tabix -p vcf $NEWVCF
+RUN echo "deb http://cran.utstat.utoronto.ca/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install r-base r-base-dev 
+
+COPY Rdeps.R /deps
+
+RUN Rscript /deps/Rdeps.R
+
+COPY models /dbs
 
 ENTRYPOINT ["/usr/local/bin/consensus_snv.sh"]

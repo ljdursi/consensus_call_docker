@@ -1,9 +1,9 @@
-#!/bin/bash -x
+#!/bin/bash 
 ## merges indel files together
 ## requires mergevcf, bgzip, tabix
 
 readonly REFERENCE=${USE_REFERENCE:-"/reference/genome.fa.gz"}
-readonly TPMDIR=${USE_TPMDIR:-"/tmp"}
+readonly TMPDIR=${USE_TMPDIR:-"/tmp"}
 
 function usage {
     >&2 echo "usage: $0 -b [/path/to/broad.indel.vcf.gz] -d [dkfz] -m [smufin] -s [sanger] -o [outfile: defaults to merged.vcf]"
@@ -47,12 +47,12 @@ function make_cleaned {
     if [[ -f "$file" ]] 
     then
         cleanup $1 \
-            | bgzip -f > ${outfile}
+            | bgzip > ${outfile}
         tabix -p vcf ${outfile}
     fi
 }
 
-outfile=merged.vcf
+outfile=merged.indel.vcf
 
 while getopts "b:d:m:s:o:h" OPTION 
 do
@@ -125,6 +125,7 @@ done
 ## merge input files into one VCF
 ##
 readonly MERGEDFILE=${TMPDIR}/merged.vcf
+readonly MERGEDSORTEDFILE=${TMPDIR}/merged.sorted.vcf
 if [[ -f "${broadfile}" ]] && [[ -f "${smufinfile}" ]] 
 then
     mergevcf -l broad,dkfz,smufin,sanger \
@@ -133,7 +134,7 @@ then
             "$cleaned_smufinfile" \
             "$cleaned_sangerfile" \
             --ncallers \
-        > ${MERGEDFILE} 
+        > "${MERGEDFILE}"
 elif [[ -f "${broadfile}" ]] 
 then
     mergevcf -l broad,dkfz,sanger \
@@ -141,18 +142,65 @@ then
             "$cleaned_dkfzfile" \
             "$cleaned_sangerfile" \
             --ncallers \
-        > ${MERGEDFILE} 
+        > "${MERGEDFILE}"
 else 
     mergevcf -l dkfz,smufin,sanger \
             "$cleaned_dkfzfile" \
             "$cleaned_sangerfile" \
             "$cleaned_smufinfile" \
             --ncallers \
-        > ${MERGEDFILE} 
+        > "${MERGEDFILE}"
 fi
 
 add_header_and_sort ${MERGEDFILE} \
     | grep -v "Callers=broad;" \
-    | bgzip -f > ${outfile}.gz
-tabix -p vcf ${outfile}.gz
+    | bgzip > ${MERGEDSORTEDFILE}.gz
+tabix -p vcf ${MERGEDSORTEDFILE}.gz
 rm -f ${MERGEDFILE}
+
+## 
+## Annotate with the SGA annotations 
+##
+
+readonly TEMPLATE="${TMPDIR}/vaf.annotate.single.conf"
+
+cat > "${TEMPLATE}" << EOF
+[[annotation]]
+file="@@FILE@@"
+fields = ["TumorVAF", "NormalVAF", "TumorVarDepth", "TumorTotalDepth", "NormalVarDepth", "NormalTotalDepth", "RepeatRefCount"]
+names = ["TumorVAF", "NormalVAF", "TumorVarDepth", "TumorTotalDepth", "NormalVarDepth", "NormalTotalDepth", "RepeatRefCount"]
+ops = ["self", "self", "self", "self", "self", "self", "self"]
+EOF
+
+readonly ANNOTATION_CONF="${TMPDIR}/vaf.indel.$$.conf"
+rm -f "${ANNOTATION_CONF}"
+for input_file in "$cleaned_broadfile" "$cleaned_dkfzfile" "$cleaned_sangerfile" "$cleaned_smufinfile"
+do
+    if [[ -f "$input_file" ]]
+    then
+        sed -e "s#@@FILE@@#$input_file#" "${TEMPLATE}" >> "${ANNOTATION_CONF}"
+        echo " " >> "${ANNOTATION_CONF}"
+    fi
+done
+
+rm -f ${TEMPLATE}
+
+vcfanno -p 1 ${ANNOTATION_CONF} ${MERGEDSORTEDFILE}.gz \
+    | sed -e 's/\tFORMAT.*$//' \
+    | sed -e 's/^##INFO=<ID=TumorVAF,.*$/##INFO=<ID=TumorVAF,Number=1,Type=Float,Description="VAF of variant in tumor from sga">/' \
+    | sed -e 's/^##INFO=<ID=TumorVarDepth,.*$/##INFO=<ID=TumorVarDepth,Number=1,Type=Integer,Description="Tumor alt count from sga">/' \
+    | sed -e 's/^##INFO=<ID=TumorTotalDepth,.*$/##INFO=<ID=TumorTotalDepth,Number=1,Type=Integer,Description="Tumor total read depth from sga">/' \
+    | sed -e 's/^##INFO=<ID=NormalVAF,.*$/##INFO=<ID=NormalVAF,Number=1,Type=Float,Description="VAF of variant in normal from sga">/' \
+    | sed -e 's/^##INFO=<ID=NormalVarDepth,.*$/##INFO=<ID=NormalVarDepth,Number=1,Type=Integer,Description="Normal alt count from sga">/' \
+    | sed -e 's/^##INFO=<ID=NormalTotalDepth,.*$/##INFO=<ID=NormalTotalDepth,Number=1,Type=Integer,Description="Normal total read depth from sga">/' \
+    > ${outfile}
+
+rm -f "$cleaned_broadfile" "$cleaned_dkfzfile" "$cleaned_sangerfile" "$cleaned_smufinfile"
+rm -f "${cleaned_broadfile}.tbi" "${cleaned_dkfzfile}.tbi" "${cleaned_sangerfile}.tbi" "${cleaned_smufinfile}.tbi"
+
+rm -f ${ANNOTATION_CONF}
+rm -f ${MERGEDSORTEDFILE}.gz
+rm -f ${MERGEDSORTEDFILE}.gz.tbi
+
+bgzip -f ${outfile}
+tabix -p vcf ${outfile}.gz

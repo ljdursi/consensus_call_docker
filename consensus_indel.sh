@@ -80,12 +80,12 @@ done
 ##
 ## Merge indel calls
 ##
-readonly INTERMEDIATE=/tmp/merged.indel.vcf
+readonly INTERMEDIATE=/tmp/merged.vaf.indel.vcf
 "${EXECUTABLE_PATH}"/merge-one-tumour-indel.sh \
     -b "${broadfile}" -d "${dkfzfile}" -m "${smufinfile}" -s "${sangerfile}" -o "$INTERMEDIATE"
 
 ##
-## annotate with dbsnp, 1kgenomes, repeat_masker, and cosmic if provided
+## Annotate with dbsnp, 1kgenomes, repeat_masker, and cosmic if provided
 ##
 
 dbsnp_args=("${INTERMEDIATE}.gz" "indel" "${outfile}")

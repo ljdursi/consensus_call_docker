@@ -107,4 +107,4 @@ vcfanno $DBSNP_ANNOTATIONS "${input_file}" \
 bgzip "${output_file}"
 tabix -p vcf "${output_file}.gz"
 
-#rm $DBSNP_ANNOTATIONS
+rm $DBSNP_ANNOTATIONS

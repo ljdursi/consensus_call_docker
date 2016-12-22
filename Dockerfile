@@ -144,7 +144,7 @@ RUN wget -nv ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/
     && bgzip $DBSNP \
     && tabix -p vcf $DBSNP.gz
 
-RUN wget http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -o $RMSK.gz \
+RUN wget -nv http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -O $RMSK.gz \
     && gunzip $RMSK.gz \
     && bgzip $RMSK \
     && tabix -p bed $RMSK.gz 

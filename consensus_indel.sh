@@ -41,7 +41,7 @@ done
 ##
 ## make sure required arguments are given
 ##
-if [[ -z "$dkfzfile" ]] || [[ -z "$sangerfile" ]]
+if [[ -z "$dkfzfile" ]] || [[ -z "$sangerfile" ]] || [[ -z "$cosmic_coding" ]] || [[ -z "$cosmic_noncoding" ]]
 then
     >&2 echo "required argument missing: need dkfz (-d) and sanger (-s) files"
     usage
@@ -65,18 +65,6 @@ do
             >&2 echo "Input VCF files must be bgziped and tabixed."
             usage
         fi
-    fi
-done
-
-##
-## make sure optional files are present if provided
-##
-for cosmicfile in "$cosmic_coding" "$cosmic_noncoding" 
-do
-    if [[ ! -z "$cosmicfile" ]] && [[ ! -f "$cosmicfile" ]] 
-    then
-        >&2 echo "Optional cosmic file provided but not present: ${cosmicfile}"
-        usage
     fi
 done
 

@@ -168,7 +168,7 @@ RUN wget -nv ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.wgs.p
 
 RUN echo "deb http://cran.utstat.utoronto.ca/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list \
     && apt-get update \
-    && apt-get install r-base r-base-dev 
+    && apt-get install -y --no-install-recommends r-base r-base-dev 
 
 COPY Rdeps.R /deps
 

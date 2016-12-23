@@ -7,7 +7,7 @@ WORKDIR /data
 
 # get ubuntu packages
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
         automake \
         autotools-dev \
         build-essential \
@@ -28,32 +28,6 @@ RUN apt-get update && \
         wget \
         zlib1g-dev 
 
-# build remaining dependencies:
-# bamtools - for SGA
-RUN mkdir -p /deps && \
-    cd /deps && \
-    wget -nv https://github.com/pezmaster31/bamtools/archive/v2.4.0.tar.gz && \
-    tar -xzvf v2.4.0.tar.gz && \
-    rm -rf v2.4.0.tar.gz && \
-    cd bamtools-2.4.0 && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make
-
-# bam-readcount: for SNV annotation
-RUN mkdir -p /deps && \
-    cd /deps && \
-    wget -nv https://github.com/genome/bam-readcount/archive/v0.7.4.tar.gz && \
-    tar -xzvf v0.7.4.tar.gz && \
-    rm v0.7.4.tar.gz && \
-    cd bam-readcount-0.7.4 && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make && \
-    make install
-
 # samtools - for indexing reference, etc
 RUN mkdir -p /deps && \
     cd /deps && \
@@ -65,15 +39,6 @@ RUN mkdir -p /deps && \
     cd .. && \
     rm -rf samtools-1.3
 
-# vcflib - for tools like vcfbreakmulti
-# set a fixed version for reproducibility
-RUN mkdir -p /deps && \
-    cd /deps && \
-    git clone --recursive git://github.com/ekg/vcflib.git && \
-    cd vcflib && \
-    git checkout d453d91592fe8a74d92b49cd6c7cd73f79a8b70b && \
-    make 
-
 # get pancan standard reference
 RUN mkdir -p /reference && \
     cd /reference && \
@@ -81,18 +46,6 @@ RUN mkdir -p /reference && \
     gunzip genome.fa.gz ; \
     bgzip genome.fa && \
     samtools faidx genome.fa.gz
-
-# build SGA
-RUN mkdir -p /src && \
-    cd /src && \
-    wget -nv https://github.com/jts/sga/archive/v0.10.14.tar.gz && \
-    tar -xzvf v0.10.14.tar.gz && \
-    rm v0.10.14.tar.gz && \
-    cd sga-0.10.14/src && \
-    ./autogen.sh && \
-    ./configure --with-bamtools=/deps/bamtools-2.4.0 --with-jemalloc=/usr --prefix=/usr/local && \
-    make && \
-    make install
 
 # get pyvcf for annotate_from_readcounts.py
 RUN pip install --upgrade pip && \

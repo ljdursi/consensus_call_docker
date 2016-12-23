@@ -8,17 +8,10 @@ WORKDIR /data
 # get ubuntu packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        automake \
-        autotools-dev \
         build-essential \
-        cmake \
         git \
         libcurl4-openssl-dev \
-        libhts-dev \
-        libhts0 \
-        libjemalloc-dev \
         libncurses5-dev \
-        libsparsehash-dev \
         libxml2-dev \
         libz-dev \
         python \
@@ -69,9 +62,11 @@ RUN cd /tmp \
     && rm -rf mergevcf-0.2
 
 COPY clean_snv_calls.py /usr/local/bin
+COPY clean_indel_calls.py /usr/local/bin
 COPY dbsnp_annotate_one.sh /usr/local/bin
 COPY merge-one-tumour-snv.sh /usr/local/bin
 COPY consensus_snv.sh /usr/local/bin
+COPY consensus_indel.sh /usr/local/bin
 
 # install vt (for normalizing VCFs )
 RUN cd /tmp \

@@ -11,6 +11,9 @@ function usage {
 }
 
 readonly EXECUTABLE_PATH=${USE_EXECUTABLE_PATH:-"/usr/local/bin"}
+readonly MODEL_PATH=${USE_MODEL_PATH:-"/dbs/models"}
+readonly TMPDIR=${USE_TMPDIR:-"/tmp"}
+
 outfile=consensus.indel.vcf
 
 while getopts "b:d:m:s:o:c:n:h" OPTION 
@@ -24,7 +27,7 @@ do
             ;;
         s) readonly sangerfile=${OPTARG}
             ;;
-        n) readonly cosmic_non_coding=${OPTARG}
+        n) readonly cosmic_noncoding=${OPTARG}
             ;;
         c) readonly cosmic_coding=${OPTARG}
             ;;
@@ -68,7 +71,7 @@ done
 ##
 ## make sure optional files are present if provided
 ##
-for cosmicfile in "$cosmic_coding" "$cosmic_non_coding" 
+for cosmicfile in "$cosmic_coding" "$cosmic_noncoding" 
 do
     if [[ ! -z "$cosmicfile" ]] && [[ ! -f "$cosmicfile" ]] 
     then
@@ -80,20 +83,21 @@ done
 ##
 ## Merge indel calls
 ##
-readonly INTERMEDIATE=/tmp/merged.vaf.indel.vcf
+readonly MERGED="${TMPDIR}/merged.vaf.$$.indel.vcf"
+readonly ANNOTATED="${TMPDIR}/annotated.indel.$$.vcf"
 "${EXECUTABLE_PATH}"/merge-one-tumour-indel.sh \
-    -b "${broadfile}" -d "${dkfzfile}" -m "${smufinfile}" -s "${sangerfile}" -o "$INTERMEDIATE"
+    -b "${broadfile}" -d "${dkfzfile}" -m "${smufinfile}" -s "${sangerfile}" -o "$MERGED"
 
 ##
 ## Annotate with dbsnp, 1kgenomes, repeat_masker, and cosmic if provided
 ##
 
-dbsnp_args=("${INTERMEDIATE}.gz" "indel" "${outfile}")
+dbsnp_args=("${MERGED}.gz" "indel" "${ANNOTATED}")
 if [[ ! -z "$cosmic_coding" ]] 
 then
     dbsnp_args+=("${cosmic_coding}")
 fi
-if [[ ! -z "$cosmic_non_coding" ]] 
+if [[ ! -z "$cosmic_noncoding" ]] 
 then
     dbsnp_args+=("${cosmic_non_coding}")
 fi
@@ -101,6 +105,27 @@ fi
 echo "${EXECUTABLE_PATH}"/dbsnp_annotate_one.sh  "${dbsnp_args[@]}"
 "${EXECUTABLE_PATH}"/dbsnp_annotate_one.sh  "${dbsnp_args[@]}"
 
-rm -f ${INTERMEDIATE}
-rm -f ${INTERMEDIATE}.gz
-rm -f ${INTERMEDIATE}.gz.tbi
+rm -f "${MERGED}"
+rm -f "${MERGED}.gz"
+rm -f "${MERGED}.gz.tbi"
+
+##
+## Filter with consensus model
+##
+
+if [[ -f $broadfile ]] && [[ -f $smufinfile ]]
+then
+    readonly MODELFILE="${MODEL_PATH}/stacked-logistic-all-four.RData"
+elif [[ -f $broadfile ]] 
+then
+    readonly MODELFILE="${MODEL_PATH}/stacked-logistic-no-broad.RData"
+else
+    readonly MODELFILE="${MODEL_PATH}/stacked-logistic-no-smufin.RData"
+fi
+
+readonly INTERMEDIATE="${TMPDIR}/interemediate.indel.$$.vcf"
+readonly MODEL_THRESHOLD=0.71
+"${EXECUTABLE_PATH}"/apply_model.sh "${MODELFILE}" "${ANNOTATED}.gz" "${INTERMEDIATE}" "${outfile}" "$MODEL_THRESHOLD" 
+
+# rm -f "${ANNOTATED}"*
+# rm -f "${INTERMEDIATE}"*

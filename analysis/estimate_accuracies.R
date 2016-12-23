@@ -53,9 +53,9 @@ applymodel <- function(snvs, snv_calls, learn_model, predict_model, formula, mod
 }
 
 require(glmnet)
-require(party)
-require(kernlab)
-require(randomForest)
+#require(party)
+#require(kernlab)
+#require(randomForest)
 
 valid.rows <- function(data) {
   return(complete.cases(data))

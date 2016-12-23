@@ -100,9 +100,19 @@ EOF
     fi
 done
 
+function cleancalls {
+    if [[ $variant_type == "snv" ]]
+    then
+        "${EXECUTABLE_PATH}/clean_snv_calls.py" 
+    else
+        cat
+    fi
+}
+
 vcfanno $DBSNP_ANNOTATIONS "${input_file}" \
     | fix_vcfanno_header \
-    | "${EXECUTABLE_PATH}/clean_${variant_type}_calls.py" -o "${output_file}"
+    | cleancalls \
+    > "${output_file}"
 
 bgzip "${output_file}"
 tabix -p vcf "${output_file}.gz"

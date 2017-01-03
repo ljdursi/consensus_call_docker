@@ -124,4 +124,6 @@ RUN Rscript /deps/Rdeps.R
 COPY models /dbs
 COPY analysis /usr/local/bin/
 
+COPY filter /usr/local/bin/
+
 ENTRYPOINT ["/usr/local/bin/consensus_snv.sh"]

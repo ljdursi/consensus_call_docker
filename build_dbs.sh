@@ -40,14 +40,15 @@ fi
 ###
 
 readonly REFERENCE_URL=ftp://ftp.sanger.ac.uk/pub/project/PanCancer/genome.fa.gz
-readonly REFERENCE_FILE=genome.fa
+
+mkdir -p "${DIRECTORY}/reference"
 
 if [[ "${COMMAND}" == "reference" ]] 
 then
     wget -nv "${REFERENCE_URL}" -O - \
         | zcat \
-        | bgzip > "${DIRECTORY}/${REFERENCE_FILE}.gz"
-    samtools faidx "${DIRECTORY}/${REFERENCE_FILE}.gz"
+        | bgzip > "${DIRECTORY}/reference/${REFERENCE_FILE}.gz"
+    samtools faidx "${DIRECTORY}/reference/${REFERENCE_FILE}.gz"
 fi
 
 ###

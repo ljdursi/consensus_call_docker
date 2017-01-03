@@ -32,14 +32,6 @@ RUN mkdir -p /deps && \
     cd .. && \
     rm -rf samtools-1.3
 
-# get pancan standard reference
-RUN mkdir -p /reference && \
-    cd /reference && \
-    wget -nv ftp://ftp.sanger.ac.uk/pub/project/PanCancer/genome.fa.gz && \
-    gunzip genome.fa.gz ; \
-    bgzip genome.fa && \
-    samtools faidx genome.fa.gz
-
 # get pyvcf for annotate_from_readcounts.py
 RUN pip install --upgrade pip && \
     pip install pyvcf
@@ -67,6 +59,9 @@ COPY dbsnp_annotate_one.sh /usr/local/bin
 COPY merge-one-tumour-snv.sh /usr/local/bin
 COPY consensus_snv.sh /usr/local/bin
 COPY consensus_indel.sh /usr/local/bin
+COPY wrapper.sh /usr/local/bin
+COPY wrapper.sh /usr/local/bin
+COPY build_dbs.sh /usr/local/bin
 
 # install vt (for normalizing VCFs )
 RUN cd /tmp \
@@ -79,41 +74,12 @@ RUN cd /tmp \
     && cd .. \
     && rm -rf vt-0.5772
 
-# copy annotation-database-copying scripts
-
-ENV DBDIR /dbs/annotation_databases/data
-RUN mkdir -p $DBDIR
-
-ENV DBSNP $DBDIR/All_20160601.vcf
-ENV RMSK $DBDIR/hg19.rmsk.bed
-
-RUN wget -nv ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz -O - \
-    | zcat | bgzip -f > $DBSNP.gz ;\
-    tabix -p vcf $DBSNP.gz
-
-RUN wget -nv http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -O $RMSK.gz \
-    && gunzip $RMSK.gz \
-    && bgzip $RMSK \
-    && tabix -p bed $RMSK.gz 
-
-ENV VCF $DBDIR/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz
-ENV NEWVCF $DBDIR/1000genomes.phase3.decomposed.normalized.vcf.gz
-ENV REF /reference/genome.fa.gz
-
-RUN wget -nv ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/release/20130502/ALL.wgs.phase3_shapeit2_mvncall_integrated_v5b.20130502.sites.vcf.gz -O $VCF \
-    && /usr/local/bin/vt decompose -s "$VCF" \
-        | /usr/local/bin/vt normalize -r "${REF}" - \
-        | grep -v "##INFO=<ID=MEINFO" \
-        | sed -e 's/MEINFO=[^;]*//' \
-        | bgzip -f > $NEWVCF \
-    && tabix -p vcf $NEWVCF \
-    && rm -f $VCF
-
 ###
 ### R and various packages are needed for the model filtering
 ###
 
-RUN echo "deb http://cran.utstat.utoronto.ca/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list \
+RUN add-apt-repository http://cran.utstat.utoronto.ca/bin/linux/ubuntu/ \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 \
     && apt-get update \
     && apt-get install -y --no-install-recommends r-base r-base-dev 
 
@@ -123,7 +89,6 @@ RUN Rscript /deps/Rdeps.R
 
 COPY models /dbs
 COPY analysis /usr/local/bin/
-
 COPY filter /usr/local/bin/
 
-ENTRYPOINT ["/usr/local/bin/consensus_snv.sh"]
+ENTRYPOINT ["/usr/local/bin/wrapper.sh"]

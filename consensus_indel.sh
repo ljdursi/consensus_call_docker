@@ -6,7 +6,7 @@
 function usage {
     >&2 echo "usage: $0 -b [/path/to/broad.indel.vcf.gz] -d [dkfz] -m [smufin] -s [sanger] -o [outfile: defaults to merged.vcf] -c [/path/to/cosmicCoding.vcf.gz] -n [/path/to/cosmicNonCoding.vcf.gz]"
     >&2 echo "       Generates consensus somatic indel VCFs for sample"
-    >&2 echo "       Input VCFs must be bgzip-ed and tabix-ed. Cosmic variant lists are optional"
+    >&2 echo "       Input VCFs must be bgzip-ed and tabix-ed."
     exit 1
 }
 
@@ -80,15 +80,7 @@ readonly ANNOTATED="${TMPDIR}/annotated.indel.$$.vcf"
 ## Annotate with dbsnp, 1kgenomes, repeat_masker, and cosmic if provided
 ##
 
-dbsnp_args=("${MERGED}.gz" "indel" "${ANNOTATED}")
-if [[ ! -z "$cosmic_coding" ]] 
-then
-    dbsnp_args+=("${cosmic_coding}")
-fi
-if [[ ! -z "$cosmic_noncoding" ]] 
-then
-    dbsnp_args+=("${cosmic_non_coding}")
-fi
+dbsnp_args=("${MERGED}.gz" "indel" "${ANNOTATED}" "${cosmic_coding}" "${cosmic_non_coding}")
 
 echo "${EXECUTABLE_PATH}"/dbsnp_annotate_one.sh  "${dbsnp_args[@]}"
 "${EXECUTABLE_PATH}"/dbsnp_annotate_one.sh  "${dbsnp_args[@]}"
@@ -111,7 +103,7 @@ else
     readonly MODELFILE="${MODEL_PATH}/stacked-logistic-no-smufin.RData"
 fi
 
-readonly INTERMEDIATE="${TMPDIR}/interemediate.indel.$$.vcf"
+readonly INTERMEDIATE="${TMPDIR}/intermediate.indel.$$.vcf"
 readonly MODEL_THRESHOLD=0.71
 "${EXECUTABLE_PATH}"/apply_model.sh "${MODELFILE}" "${ANNOTATED}.gz" "${INTERMEDIATE}" "${outfile}" "$MODEL_THRESHOLD" 
 

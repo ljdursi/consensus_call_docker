@@ -20,7 +20,7 @@ readonly RAWOUTPUTVCF="$3"
 readonly OUTPUTVCF="$4"
 readonly THRESH=${5:-${DEFTHRESH}}
 
-Rscript --vanilla "${EXECUTABLE_PATH}/analysis/filter_calls_by_model.R" "$MODEL" "$INPUTVCF" "$RAWOUTPUTVCF" "$THRESH"
+Rscript --vanilla "${EXECUTABLE_PATH}/analysis/filter_calls_by_model.R" "$MODEL" "$INPUTVCF" "$RAWOUTPUTVCF" "${EXECUTABLE_PATH}/analysis/" "$THRESH" 
 
 python "${EXECUTABLE_PATH}/clean_indel_calls.py" "${RAWOUTPUTVCF}" \
     | grep -v "^##INFO=<ID=RepeatRefCount" \

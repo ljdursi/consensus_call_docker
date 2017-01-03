@@ -87,10 +87,9 @@ RUN mkdir -p $DBDIR
 ENV DBSNP $DBDIR/All_20160601.vcf
 ENV RMSK $DBDIR/hg19.rmsk.bed
 
-RUN wget -nv ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz -O $DBSNP.gz \
-    && gunzip $DBSNP.gz \
-    && bgzip $DBSNP \
-    && tabix -p vcf $DBSNP.gz
+RUN wget -nv ftp://ftp.ncbi.nlm.nih.gov/snp/organisms/human_9606_b147_GRCh37p13/VCF/All_20160601.vcf.gz -O - \
+    | zcat | bgzip -f > $DBSNP.gz ;\
+    tabix -p vcf $DBSNP.gz
 
 RUN wget -nv http://people.virginia.edu/~arq5x/files/gemini/annotations/hg19.rmsk.bed.gz -O $RMSK.gz \
     && gunzip $RMSK.gz \
@@ -123,5 +122,6 @@ COPY Rdeps.R /deps
 RUN Rscript /deps/Rdeps.R
 
 COPY models /dbs
+COPY analysis /usr/local/bin/
 
 ENTRYPOINT ["/usr/local/bin/consensus_snv.sh"]

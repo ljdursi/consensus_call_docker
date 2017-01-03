@@ -2,16 +2,17 @@
 
 args = commandArgs(trailingOnly=TRUE)
 
-if (length(args)<3) {
-  stop("Usage: filter_calls_by_model model_file input.vcf output.vcf [threshold]")
+if (length(args)<4) {
+  stop("Usage: filter_calls_by_model model_file input.vcf output.vcf rpath [threshold]")
 } else {
     model.file <- args[1] 
     in.vcf <- args[2]    
     out.vcf <- args[3]    
-    if (length(args) > 3) {
-        thresh <- as.numeric(args[4])
+    rpath <- args[4]
+    if (length(args) > 4) {
+        thresh <- as.numeric(args[5])
     } else {
-        thresh <- 0.66
+        thresh <- 0.71
     }
 }
 
@@ -27,7 +28,7 @@ if (!exists("formula")) {
     stop("Model file must contain a formula named formula")
 }
 
-source('analysis/estimate_accuracies.R')
-source('analysis/apply_model.R')
+source(paste0(rpath, 'estimate_accuracies.R'))
+source(paste0(rpath, 'apply_model.R'))
 
 filterVcfByModel(in.vcf, out.vcf, model, formula, predict_function, thresh)

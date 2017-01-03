@@ -40,6 +40,7 @@ fi
 ###
 
 readonly REFERENCE_URL=ftp://ftp.sanger.ac.uk/pub/project/PanCancer/genome.fa.gz
+readonly REFERENCE_FILE=genome.fa
 
 mkdir -p "${DIRECTORY}/reference"
 

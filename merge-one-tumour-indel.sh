@@ -2,7 +2,7 @@
 ## merges indel files together
 ## requires mergevcf, bgzip, tabix
 
-readonly REFERENCE=${USE_REFERENCE:-"/reference/genome.fa.gz"}
+readonly REFERENCE=${USE_REFERENCE:-"/dbs/reference/genome.fa.gz"}
 readonly TMPDIR=${USE_TMPDIR:-"/tmp"}
 
 function usage {
@@ -24,7 +24,7 @@ function add_header_and_sort {
     ${grep_or_zgrep} "^##" "$file"
     if [[ ! -z "$header" ]] 
     then
-        echo $header
+        echo "$header"
     fi
     ${grep_or_zgrep} -v "^##" "$file" \
         | sort -k1,1 -k2,2n
@@ -46,9 +46,9 @@ function make_cleaned {
     local outfile=$2
     if [[ -f "$file" ]] 
     then
-        cleanup $1 \
-            | bgzip > ${outfile}
-        tabix -p vcf ${outfile}
+        cleanup "${file}" \
+            | bgzip > "${outfile}"
+        tabix -p vcf "${outfile}"
     fi
 }
 
@@ -118,7 +118,7 @@ do
     declare oldfilename=${caller}file
     declare newfilename=cleaned_${caller}file
     declare $newfilename=${TMPDIR}/${caller}.indel.vcf.gz
-    make_cleaned ${!oldfilename} ${!newfilename}
+    make_cleaned "${!oldfilename}" "${!newfilename}"
 done
 
 ##
@@ -152,11 +152,11 @@ else
         > "${MERGEDFILE}"
 fi
 
-add_header_and_sort ${MERGEDFILE} \
+add_header_and_sort "${MERGEDFILE}" \
     | grep -v "Callers=broad;" \
-    | bgzip > ${MERGEDSORTEDFILE}.gz
-tabix -p vcf ${MERGEDSORTEDFILE}.gz
-rm -f ${MERGEDFILE}
+    | bgzip > "${MERGEDSORTEDFILE}.gz"
+tabix -p vcf "${MERGEDSORTEDFILE}.gz"
+rm -f "${MERGEDFILE}"
 
 ## 
 ## Annotate with the SGA annotations 
@@ -183,9 +183,9 @@ do
     fi
 done
 
-rm -f ${TEMPLATE}
+rm -f "${TEMPLATE}"
 
-vcfanno -p 1 ${ANNOTATION_CONF} ${MERGEDSORTEDFILE}.gz \
+vcfanno -p 1 "${ANNOTATION_CONF}" "${MERGEDSORTEDFILE}.gz" \
     | sed -e 's/\tFORMAT.*$//' \
     | sed -e 's/^##INFO=<ID=TumorVAF,.*$/##INFO=<ID=TumorVAF,Number=1,Type=Float,Description="VAF of variant in tumor from sga">/' \
     | sed -e 's/^##INFO=<ID=TumorVarDepth,.*$/##INFO=<ID=TumorVarDepth,Number=1,Type=Integer,Description="Tumor alt count from sga">/' \
@@ -193,14 +193,14 @@ vcfanno -p 1 ${ANNOTATION_CONF} ${MERGEDSORTEDFILE}.gz \
     | sed -e 's/^##INFO=<ID=NormalVAF,.*$/##INFO=<ID=NormalVAF,Number=1,Type=Float,Description="VAF of variant in normal from sga">/' \
     | sed -e 's/^##INFO=<ID=NormalVarDepth,.*$/##INFO=<ID=NormalVarDepth,Number=1,Type=Integer,Description="Normal alt count from sga">/' \
     | sed -e 's/^##INFO=<ID=NormalTotalDepth,.*$/##INFO=<ID=NormalTotalDepth,Number=1,Type=Integer,Description="Normal total read depth from sga">/' \
-    > ${outfile}
+    > "${outfile}"
 
 rm -f "$cleaned_broadfile" "$cleaned_dkfzfile" "$cleaned_sangerfile" "$cleaned_smufinfile"
 rm -f "${cleaned_broadfile}.tbi" "${cleaned_dkfzfile}.tbi" "${cleaned_sangerfile}.tbi" "${cleaned_smufinfile}.tbi"
 
-rm -f ${ANNOTATION_CONF}
-rm -f ${MERGEDSORTEDFILE}.gz
-rm -f ${MERGEDSORTEDFILE}.gz.tbi
+rm -f "${ANNOTATION_CONF}"
+rm -f "${MERGEDSORTEDFILE}.gz"
+rm -f "${MERGEDSORTEDFILE}.gz.tbi"
 
-bgzip -f ${outfile}
-tabix -p vcf ${outfile}.gz
+bgzip -f "${outfile}"
+tabix -p vcf "${outfile}.gz"

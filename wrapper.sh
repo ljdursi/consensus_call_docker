@@ -25,7 +25,7 @@ then
     usage
 fi
 
-if [[ "${COMMAND}" != "consensus" ]] && [[ "${COMMAND}" != "filter" ]] || [[ "${COMMAND}" != "download" ]]
+if [[ "${COMMAND}" != "consensus" ]] && [[ "${COMMAND}" != "filter" ]] && [[ "${COMMAND}" != "download" ]]
 then
     echo >&2 "Invalid command ${COMMAND}."
     usage
@@ -50,7 +50,7 @@ fi
 ###
 if [[ "${COMMAND}" == "download" ]] 
 then
-    "${EXECUTABLE_PATH}/build_dbs.sh" "${@:3}"
+    "${EXECUTABLE_PATH}/build_dbs.sh" "${@:2}"
 fi
 
 ###
@@ -58,11 +58,6 @@ fi
 ###
 if [[ "${COMMAND}" == "filter" ]] 
 then
-    if [[ "${SUBCOMMAND}" != "snv" ]] && [[ "${SUBCOMMAND}" != "indel" ]] 
-    then
-        echo >&2 "Invalid variant type ${SUBCOMMAND}"
-        usage
-    fi
-
-    "${EXECUTABLE_PATH}/consensus_${SUBCOMMAND}.sh" "${@:3}"
+    ### Not yet implemented
+    pass
 fi

@@ -66,19 +66,19 @@ readonly DBSNP_ANNOTATIONS=/tmp/dbsnp_annotations.conf
 rm -f $DBSNP_ANNOTATIONS
 cat > $DBSNP_ANNOTATIONS <<EOF
 [[annotation]]
-file = "${DB_PATH}/data/All_20160601.vcf.gz"
+file = "${DB_PATH}/All_20160601.vcf.gz"
 fields = ["ID", "VP"]
 names = ["dbsnp", "dbsnp_VP"]
 ops = ["first", "first"]
 
 [[annotation]]
-file = "${DB_PATH}/data/hg19.rmsk.bed.gz"
+file = "${DB_PATH}/hg19.rmsk.bed.gz"
 columns = [4]
 names = ["repeat_masker"]
 ops = ["first"]
 
 [[annotation]]
-file = "${DB_PATH}/data/1000genomes.phase3.decomposed.normalized.vcf.gz"
+file = "${DB_PATH}/1000genomes.phase3.decomposed.normalized.vcf.gz"
 fields = ["ID", "AF"]
 names = ["1000genomes_ID", "1000genomes_AF"]
 ops = ["self", "self"]

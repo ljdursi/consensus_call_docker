@@ -52,17 +52,6 @@ RUN cd /tmp \
     && python setup.py install \
     && cd .. \
     && rm -rf mergevcf-0.2
-
-COPY clean_snv_calls.py /usr/local/bin
-COPY clean_indel_calls.py /usr/local/bin
-COPY dbsnp_annotate_one.sh /usr/local/bin
-COPY merge-one-tumour-snv.sh /usr/local/bin
-COPY consensus_snv.sh /usr/local/bin
-COPY consensus_indel.sh /usr/local/bin
-COPY wrapper.sh /usr/local/bin
-COPY wrapper.sh /usr/local/bin
-COPY build_dbs.sh /usr/local/bin
-
 # install vt (for normalizing VCFs )
 RUN cd /tmp \
     && wget -nv https://github.com/atks/vt/archive/0.5772.tar.gz \
@@ -78,14 +67,23 @@ RUN cd /tmp \
 ### R and various packages are needed for the model filtering
 ###
 
-RUN add-apt-repository http://cran.utstat.utoronto.ca/bin/linux/ubuntu/ \
+RUN echo "deb http://cran.utstat.utoronto.ca/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list \
     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9 \
     && apt-get update \
     && apt-get install -y --no-install-recommends r-base r-base-dev 
 
 COPY Rdeps.R /deps
-
 RUN Rscript /deps/Rdeps.R
+
+COPY clean_snv_calls.py /usr/local/bin
+COPY clean_indel_calls.py /usr/local/bin
+COPY dbsnp_annotate_one.sh /usr/local/bin
+COPY merge-one-tumour-snv.sh /usr/local/bin
+COPY consensus_snv.sh /usr/local/bin
+COPY consensus_indel.sh /usr/local/bin
+COPY wrapper.sh /usr/local/bin
+COPY wrapper.sh /usr/local/bin
+COPY build_dbs.sh /usr/local/bin
 
 COPY models /dbs
 COPY analysis /usr/local/bin/

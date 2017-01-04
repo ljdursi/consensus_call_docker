@@ -8,9 +8,9 @@ readonly EXECUTABLE_PATH=${USE_EXECUTABLE_PATH:-"/usr/local/bin"}
 function usage {
     echo >&2 "$0: downloads and installs necessary databases for consensus calling"
     echo >&2 "    options: "
-    echo >&2 "       reference /directory/name: "
-    echo >&2 "       annotations /directory/name/: annotation files (dbsnp, 1000 genomes, repeat masker)"
-    echo >&2 "       cosmic /directory/name/: Cosmic VCF files (coding, noncoding: must have password)"
+    echo >&2 "       reference /directory/name :downloads reference"
+    echo >&2 "       annotations /directory/name/ :annotation files (dbsnp, 1000 genomes, repeat masker)"
+    echo >&2 "       cosmic /directory/name/ :Cosmic VCF files (coding, noncoding: must have password)"
     echo >&2 "       Must download reference before annotations, cosmic."
     exit 1
 }
@@ -54,6 +54,7 @@ then
     bgzip "${TMP_REF}" > "${PATH_TO_REFERENCE}" \
         && rm -f "${TMP_REF}"
     samtools faidx "${PATH_TO_REFERENCE}"
+    exit 0
 fi
 
 ###
@@ -113,6 +114,7 @@ then
 
     # 1000 genomes
     download_and_normalize "${KGENOMES_URL}" "${INTERMEDIATE}" "${KGENOMES}.gz" "${PATH_TO_REFERENCE}" "wget"
+    exit 0
 fi
 
 ###
@@ -141,4 +143,5 @@ then
 
     # noncoding
     download_and_normalize "\"${emailaddr}\"@${COSMICADDR}:${NONCODING}" "${INTERMEDIATE}" "${NONCODINGPATH}" "${PATH_TO_REFERENCE}" "sftp"
+    exit 0
 fi

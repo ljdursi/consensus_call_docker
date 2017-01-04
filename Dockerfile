@@ -89,4 +89,6 @@ COPY models /dbs
 COPY analysis /usr/local/bin/
 COPY filter /usr/local/bin/
 
+RUN apt-get install -y --no-install-recommends openssh
+
 ENTRYPOINT ["/usr/local/bin/wrapper.sh"]

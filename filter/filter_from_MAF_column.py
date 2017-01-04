@@ -54,13 +54,13 @@ def main():
     parser.add_argument('name', help='Name of info field or filter')
     parser.add_argument('-i', '--input', type=argparse.FileType('r'), default=sys.stdin, help="VCF file to be processed (default: stdin)")
     parser.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout, help="Output file (default:stdout)")
-    parser.add_argument('-a', '--action', choices=['info','filter'], default='info', help='add tag (info) or filter based on presence in MAF (default:info)')
+    parser.add_argument('-n', '--info', action='store_true', help="Add info flag rather than filter")
     parser.add_argument('-c', '--column', type=str, help='column in MAF to use for info, if present')
     parser.add_argument('-d', '--description', default="", type=str, help='description of new info/filter field')
     args = parser.parse_args()
 
     reader = vcf.Reader(args.input)
-    if args.action == "info":
+    if args.info:
         reader.infos[args.name] = vcf.parser._Info(id=args.name, num='1', type='String', desc=args.description, source=None, version=None)
     else:
         reader.filters[args.name] = vcf.parser._Filter(id=args.name, desc=args.description)
@@ -71,7 +71,7 @@ def main():
         assert len(record.ALT) == 1
         variant = variant_tuple(record, record.ALT[0])
         if variant in classification_dict:
-            if args.action == "info":
+            if args.info:
                 record.INFO[args.name] = classification_dict[variant]
             else:
                 if not record.FILTER:

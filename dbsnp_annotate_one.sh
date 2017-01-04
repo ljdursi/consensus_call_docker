@@ -3,8 +3,20 @@
 readonly DB_PATH=${USE_DB_PATH:-"/dbs/annotation_databases"}
 readonly EXECUTABLE_PATH=${USE_EXECUTABLE_PATH:-"/usr/local/bin"}
 
+readonly CODINGPATH="${DB_PATH}/CosmicCodingMuts.vcf.gz"
+readonly NONCODINGPATH="${DB_PATH}/CosmicNonCodingVariants.vcf.gz"
+
+if [[ -f "${CODINGPATH}" ]]
+then
+    readonly cosmic_coding="$CODINGPATH"
+fi
+if [[ -f "${NONCODINGPATH}" ]]
+then
+    readonly cosmic_non_coding="$CODINGPATH"
+fi
+
 function usage {
-    >&2 echo "usage: $0 input.vcf.gz snv|indel output_file [/path/to/cosmic_coding] [/path/to/cosmic_noncoding]"
+    >&2 echo "usage: $0 input.vcf.gz snv|indel output_file"
     >&2 echo "       annotates one merged tumor"
     exit 1
 }
@@ -12,8 +24,6 @@ function usage {
 readonly input_file="$1"
 readonly variant_type="$2"
 readonly output_file="$3"
-readonly cosmic_coding="$4"
-readonly cosmic_non_coding="$5"
 
 if [[ -z "$input_file" ]] || [[ -z "$output_file" ]] 
 then
@@ -46,6 +56,14 @@ then
     >&2 echo "database directory missing: ${DB_PATH} not found"
     usage
 fi
+
+if [[ "$variant_type" == "indel" && ( -z "$cosmic_coding" || -z "$cosmic_non_coding" ) ]]
+then
+    >&2 echo "Error: Indel consensus calling requires cosmic VCFs"
+    >&2 echo "Run download cosmic before merging indels"
+    usage
+fi
+    
 
 if [[ -f "${output_file}.gz" ]] && [[ "${output_file}.gz" -nt "$input_file" ]]
 then

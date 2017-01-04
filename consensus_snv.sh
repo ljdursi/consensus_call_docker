@@ -53,7 +53,7 @@ fi
 ##
 ## make sure the files (look to be) bgzipped and have .tbi files
 ##
-for file in "$musefile" "$broadfile" "$dkfzfile" "$sangerfile" "$cosmic_coding" "$cosmic_noncoding"
+for file in "$musefile" "$broadfile" "$dkfzfile" "$sangerfile" "$cosmic_coding" "$cosmic_non_coding"
 do
     if [[ ! -z "$file" ]] 
     then

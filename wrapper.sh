@@ -58,6 +58,5 @@ fi
 ###
 if [[ "${COMMAND}" == "filter" ]] 
 then
-    ### Not yet implemented
-    pass
+    "${EXECUTABLE_PATH}/filter/additional_filters.sh" "${@:2}"    
 fi

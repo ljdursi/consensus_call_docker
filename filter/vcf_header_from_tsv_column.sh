@@ -14,25 +14,26 @@ function usage {
 }
 
 
-while getopts ":c:i:n:t:" o
+while getopts ":c:I:i:n:t:" o
 do
     case "${o}" in
         c) COLUMN=${OPTARG} ;;
-        i) ID=${OPTARG} ;;
+        I) ID=${OPTARG} ;;
+        i) input=${OPTARG} ;;
         n) NAME=${OPTARG} ;;
         t) TSV=${OPTARG} ;;
     esac
 done
 
-if [[ "$COLUMN" == "$UNDEF" ]] || [[ $ID == $UNDEF ]] || [[ $NAME == $UNDEF ]] || [[ $TSV == $UNDEF ]]
+if [[ "$COLUMN" == "$UNDEF" ]] || [[ "$ID" == "$UNDEF" ]] || [[ "$NAME" == "$UNDEF" ]] || [[ "$TSV" == "$UNDEF" ]]
 then
     usage
 fi
 
-key=$( grep $ID $TSV | cut -f$COLUMN -d$'\t')
+key=$( grep "$ID" "$TSV" | cut -f"$COLUMN" -d$'\t')
 echo "##fileformat=VCFv4.1"
 if [[ "$key" != "" ]]
 then
     echo "##${NAME}=$key"
 fi
-tail -n +2
+tail -n +2 "${input}"

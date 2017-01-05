@@ -48,7 +48,7 @@ to the final calls.  Those can be added with:
 ```
 ... consensus_call filter presence_in_maf [--info] -d description /path/to/input.maf sample_ID filter_name -i /path/to/input.vcf -o output.vcf
     - adds filter/info to VCF entry if sample_ID and variant present in input.maf
-... consensus_call filter column_in_maf [--info] -c column_name -d description /path/to/input.maf sample_ID filter_name -i /path/to/input.vcf -o output.vcf
+... consensus_call filter column_of_maf [--info] -c column_name -d description /path/to/input.maf sample_ID filter_name -i /path/to/input.vcf -o output.vcf
     - adds filter/info to VCF entry from column name column_name in input.maf if present
 ... consensus_call filter sex -s {male|female} -i /path/to/input.vcf -o output.vcf
     - filters Y-chrom calls if female
@@ -66,8 +66,8 @@ docker... consensus_call filter presence_in_maf --info -d "Sanger Tower: Possibl
 docker... consensus_call filter presence_in_maf --info -d "Suspected C>A oxo-guanine signature in some samples" pcawg7_artifacts/R2.tsv ${ID} signature_R2 
 docker... consensus_call filter presence_in_maf --info -d "T>A mutation often in bleed through context" pcawg7_artifacts/N3.tsv ${ID} signature_N3 
 docker... consensus_call filter presence_in_maf --info -d "SNV is located near indel" somaticSnv_at_sameSampleSomaticAndGermlineIndels.tab ${ID} snv_near_indel 
-docker... consensus_call filter column_in_maf --info -c Variant_Classification -d "Variant Classification" classification/${ID}.snv_mnv.maf Variant_Classification 
-docker... consensus_call filter column_in_maf -d "Variant no longer seen under remapping" realignment/${ID}.snv_mnv.maf REMAPFAIL 
+docker... consensus_call filter column_of_maf --info -c Variant_Classification -d "Variant Classification" classification/${ID}.snv_mnv.maf Variant_Classification 
+docker... consensus_call filter column_of_maf -d "Variant no longer seen under remapping" realignment/${ID}.snv_mnv.maf REMAPFAIL 
 docker... consensus_call filter sex "${SEX}"
 docker... consensus_call filter header_from_tsv -c 11 -i ${ID} -n TumourInNormalEstimate -t release_may2016.v1.1.TiN__donor.TiNsorted.20Jul2016.tsv
 docker... consensus_call filter header_from_tsv -c 3 -i ${ID} -n BAMQCStars -t release/by_tumour_id.tsv

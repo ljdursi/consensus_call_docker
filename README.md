@@ -34,7 +34,7 @@ docker run -v "${PWD}/dbs":/dbs -v "/path/to/data/files":/data consensus_call co
     -b /data/broad_snv_file.vcf.gz \
     -d /data/dkfz_snv_file.vcf.gz \
     -m /data/muse_snv_file.vcf.gz \
-    -s /data/sanger_snv_file.vcf.gz 
+    -s /data/sanger_snv_file.vcf.gz \
     -o /data/consensus_snv.vcf
 ```
 

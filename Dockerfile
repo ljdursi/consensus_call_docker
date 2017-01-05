@@ -14,6 +14,7 @@ RUN apt-get update && \
         libncurses5-dev \
         libxml2-dev \
         libz-dev \
+        openssh-client \
         python \
         python-dev \
         python-pip \
@@ -22,19 +23,19 @@ RUN apt-get update && \
         zlib1g-dev 
 
 # samtools - for indexing reference, etc
-RUN mkdir -p /deps && \
-    cd /deps && \
-    wget -nv https://github.com/samtools/samtools/releases/download/1.3/samtools-1.3.tar.bz2 && \
-    tar -xjvf samtools-1.3.tar.bz2 && \
-    rm samtools-1.3.tar.bz2 && \
-    cd samtools-1.3 && \
-    make prefix=/usr/local/ install && \
-    cd .. && \
-    rm -rf samtools-1.3
+RUN mkdir -p /deps \
+    && cd /deps \
+    && wget -nv https://github.com/samtools/samtools/releases/download/1.3/samtools-1.3.tar.bz2 && \
+    && tar -xjvf samtools-1.3.tar.bz2 \
+    && rm samtools-1.3.tar.bz2 \
+    && cd samtools-1.3 \
+    && make prefix=/usr/local/ install \
+    && cd .. \
+    && rm -rf samtools-1.3
 
-# get pyvcf for annotate_from_readcounts.py
-RUN pip install --upgrade pip && \
-    pip install pyvcf
+# get pyvcf for mergevcf
+RUN pip install --upgrade pip \
+    && pip install pyvcf
 
 # install vcfanno for annotating VCFs with beds/vcfs
 RUN cd /tmp \
@@ -52,6 +53,7 @@ RUN cd /tmp \
     && python setup.py install \
     && cd .. \
     && rm -rf mergevcf-0.2
+
 # install vt (for normalizing VCFs )
 RUN cd /tmp \
     && wget -nv https://github.com/atks/vt/archive/0.5772.tar.gz \
@@ -75,6 +77,10 @@ RUN echo "deb http://cran.utstat.utoronto.ca/bin/linux/ubuntu trusty/" >> /etc/a
 COPY Rdeps.R /deps
 RUN Rscript /deps/Rdeps.R
 
+### 
+### Copy needed scripts into /usr/local/bin
+###
+
 COPY clean_snv_calls.py /usr/local/bin
 COPY clean_indel_calls.py /usr/local/bin
 COPY dbsnp_annotate_one.sh /usr/local/bin
@@ -82,13 +88,10 @@ COPY merge-one-tumour-snv.sh /usr/local/bin
 COPY consensus_snv.sh /usr/local/bin
 COPY consensus_indel.sh /usr/local/bin
 COPY wrapper.sh /usr/local/bin
-COPY wrapper.sh /usr/local/bin
 COPY build_dbs.sh /usr/local/bin
 
 COPY models /dbs
 COPY analysis /usr/local/bin/
 COPY filter /usr/local/bin/
-
-RUN apt-get install -y --no-install-recommends openssh
 
 ENTRYPOINT ["/usr/local/bin/wrapper.sh"]

@@ -52,8 +52,8 @@ then
     echo "Downloading ${REFERENCE_URL} ..."
     wget -nv "${REFERENCE_URL}" -O "${TMP_REF}.gz"
     gunzip "${TMP_REF}.gz"
-    bgzip "${TMP_REF}" > "${PATH_TO_REFERENCE}" \
-        && rm -f "${TMP_REF}"
+    bgzip "${TMP_REF}" \
+        && mv "${TMP_REF}.gz" "${PATH_TO_REFERENCE}"
     samtools faidx "${PATH_TO_REFERENCE}"
     exit 0
 fi

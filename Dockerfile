@@ -25,7 +25,7 @@ RUN apt-get update && \
 # samtools - for indexing reference, etc
 RUN mkdir -p /deps \
     && cd /deps \
-    && wget -nv https://github.com/samtools/samtools/releases/download/1.3/samtools-1.3.tar.bz2 && \
+    && wget -nv https://github.com/samtools/samtools/releases/download/1.3/samtools-1.3.tar.bz2 \
     && tar -xjvf samtools-1.3.tar.bz2 \
     && rm samtools-1.3.tar.bz2 \
     && cd samtools-1.3 \

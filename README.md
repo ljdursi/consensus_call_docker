@@ -16,9 +16,9 @@ this is done with the following invocations:
 
 ```
 mkdir dbs
-docker run -it -v "${PWD}/dbs":/dbs consensus_call download reference
-docker run -it -v "${PWD}/dbs":/dbs consensus_call download annotations
-docker run -it -v "${PWD}/dbs":/dbs consensus_call download cosmic
+docker run -it -v "${PWD}/dbs":/dbs consensus_call download reference /dbs
+docker run -it -v "${PWD}/dbs":/dbs consensus_call download annotations /dbs
+docker run -it -v "${PWD}/dbs":/dbs consensus_call download cosmic /dbs
 ```
 
 where the cosmic downloads are optional for SNV calling (but required for indels) and

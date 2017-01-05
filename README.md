@@ -35,6 +35,7 @@ docker run -v "${PWD}/dbs":/dbs -v "/path/to/data/files":/data consensus_call co
     -d /data/dkfz_snv_file.vcf.gz \
     -m /data/muse_snv_file.vcf.gz \
     -s /data/sanger_snv_file.vcf.gz 
+    -o /data/consensus_snv.vcf
 ```
 
 and similarly with indels (although -m is smufin). These VCFs are expected to have gone through

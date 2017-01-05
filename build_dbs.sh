@@ -49,6 +49,7 @@ mkdir -p "${DIRECTORY}/reference"
 if [[ "${COMMAND}" == "reference" ]] 
 then
     readonly TMP_REF="${DIRECTORY}/reference/TMP.fa"
+    echo "Downloading ${REFERENCE_URL} ..."
     wget -nv "${REFERENCE_URL}" -O "${TMP_REF}.gz"
     gunzip "${TMP_REF}.gz"
     bgzip "${TMP_REF}" > "${PATH_TO_REFERENCE}" \
@@ -84,12 +85,16 @@ function download_and_normalize {
     local reference="$4"
     local method="$5"
 
+    echo "Downloading ${url} ..."
+
     if [[ "$method" == "sftp" ]]
     then
         sftp "$url" "$intermediate"
     else
         wget -nv "$url" -O "$intermediate" 
     fi
+
+    echo "Normalizing..."
 
     vt decompose -s "$intermediate" \
         | vt normalize -r "$reference" - \
@@ -135,13 +140,13 @@ then
     readonly CODINGPATH=/files/grch37/cosmic/v77/VCF/CosmicCodingMuts.vcf.gz
     readonly NONCODINGPATH=/files/grch37/cosmic/v77/VCF/CosmicNonCodingVariants.vcf.gz
 
-    readonly CODINGPATH=${DIRECTORY}/annotation_databases/CosmicCodingMuts.vcf.gz
-    readonly NONCODINGPATH=${DIRECTORY}/annotation_databases/CosmicNonCodingVariants.vcf.gz
+    readonly CODINGFILE=${DIRECTORY}/annotation_databases/CosmicCodingMuts.vcf.gz
+    readonly NONCODINGFILE=${DIRECTORY}/annotation_databases/CosmicNonCodingVariants.vcf.gz
 
     # coding
-    download_and_normalize "\"${emailaddr}\"@${COSMICADDR}:${CODING}" "${INTERMEDIATE}" "${CODINGPATH}" "${PATH_TO_REFERENCE}" "sftp"
+    download_and_normalize "\"${emailaddr}\"@${COSMICADDR}:${CODINGPATH}" "${INTERMEDIATE}" "${CODINGFILEPATH}" "${PATH_TO_REFERENCE}" "sftp"
 
     # noncoding
-    download_and_normalize "\"${emailaddr}\"@${COSMICADDR}:${NONCODING}" "${INTERMEDIATE}" "${NONCODINGPATH}" "${PATH_TO_REFERENCE}" "sftp"
+    download_and_normalize "\"${emailaddr}\"@${COSMICADDR}:${NONCODINGPATH}" "${INTERMEDIATE}" "${NONCODINGFILEPATH}" "${PATH_TO_REFERENCE}" "sftp"
     exit 0
 fi

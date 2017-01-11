@@ -90,8 +90,10 @@ COPY consensus_indel.sh /usr/local/bin
 COPY wrapper.sh /usr/local/bin
 COPY build_dbs.sh /usr/local/bin
 
+RUN mkdir -p /usr/local/bin/filter && mkdir -p /usr/local/bin/analysis
+
 COPY models /dbs
-COPY analysis /usr/local/bin/
-COPY filter /usr/local/bin/
+COPY analysis /usr/local/bin/analysis/
+COPY filter /usr/local/bin/filter/
 
 ENTRYPOINT ["/usr/local/bin/wrapper.sh"]

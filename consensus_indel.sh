@@ -11,7 +11,7 @@ function usage {
 }
 
 readonly EXECUTABLE_PATH=${USE_EXECUTABLE_PATH:-"/usr/local/bin"}
-readonly MODEL_PATH=${USE_MODEL_PATH:-"/dbs/models"}
+readonly MODEL_PATH=${USE_MODEL_PATH:-"/usr/local/models"}
 readonly TMPDIR=${USE_TMPDIR:-"/tmp"}
 
 outfile=consensus.indel.vcf

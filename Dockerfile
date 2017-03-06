@@ -92,9 +92,9 @@ COPY build_dbs.sh /usr/local/bin
 COPY merge-one-tumour-indel.sh /usr/local/bin
 COPY apply_model.sh /usr/local/bin
 
-RUN mkdir -p /usr/local/bin/filter && mkdir -p /usr/local/bin/analysis
+RUN mkdir -p /usr/local/bin/filter && mkdir -p /usr/local/bin/analysis && mkdir -p /usr/local/models/
 
-COPY models /dbs
+COPY models /usr/local/models/
 COPY analysis /usr/local/bin/analysis/
 COPY filter /usr/local/bin/filter/
 

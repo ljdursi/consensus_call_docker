@@ -89,6 +89,8 @@ COPY consensus_snv.sh /usr/local/bin
 COPY consensus_indel.sh /usr/local/bin
 COPY wrapper.sh /usr/local/bin
 COPY build_dbs.sh /usr/local/bin
+COPY merge-one-tumour-indel.sh /usr/local/bin
+COPY apply_model.sh /usr/local/bin
 
 RUN mkdir -p /usr/local/bin/filter && mkdir -p /usr/local/bin/analysis
 
